@@ -1,0 +1,6 @@
+/.vs/
+/.sass-cache/
+/node_modules/
+/nbproject/
+/vendor/
+/.htaccess
