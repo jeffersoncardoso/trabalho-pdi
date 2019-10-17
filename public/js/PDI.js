@@ -306,151 +306,17 @@ var PDI = function($) {
             statisticsComplete();
             return [ imgData ];
         },
-        brightnessContrast: function(brightness, contrast) {
+        ZhangSuen: function() {
             var _this = this;
-            var B = brightness;
-            var C = contrast;
-            var imgData = _this.getImageData();
+            var imgData = _this.filterGray()[0];
             for (var y = 0, x = 0, i = 0; i < imgData.data.length; i += 4) {
                 for (let j = 0; j < 3; j++) {
-                    imgData.data[i + j] = imgData.data[i + j] * C + B;
-                    if (imgData.data[i + j] > 255) {
-                        imgData.data[i + j] = 255;
-                    }
-                    if (imgData.data[i + j] < 0) {
-                        imgData.data[i + j] = 0;
-                    }
-                }
-            }
-            _this.image = imgData;
-            return [ imgData ];
-        },
-        negative: function() {
-            var _this = this;
-            var imgData = _this.getImageData();
-            for (var y = 0, x = 0, i = 0; i < imgData.data.length; i += 4) {
-                for (let j = 0; j < 3; j++) {
-                    imgData.data[i + j] = 255 - imgData.data[i + j];
+                    var binary = imgData.data[i + j] > 150 ? 255 : 0;
+                    imgData.data[i + j] = binary;
                 }
             }
             return [ imgData ];
-        },
-        transform: function(width, height, matrix) {
-            width = Math.floor(width);
-            height = Math.floor(height);
-            var _this = this;
-            var results = [];
-            function addResult() {
-                results.push(_this.blankMatrix(width, height));
-            }
-            addResult();
-            var pixelData = _this.getImageData().data;
-            var prop = {
-                ow: _this.image.width / width,
-                oh: _this.image.height / height,
-                nw: width / _this.image.width,
-                nh: height / _this.image.height
-            };
-            for (var y = 0, x = 0, i = 0; i <= results[0].data.length; i += 4) {
-                x = i / 4 - width * y;
-                if (x == width) y++;
-                var nx = Math.floor(matrix[0] * x + matrix[3] * y + matrix[6]);
-                var ny = Math.floor(matrix[1] * x + matrix[4] * y + matrix[7]);
-                var currPixel = i;
-                if (nx >= 0 && nx <= _this.image.width && ny >= 0 && ny <= _this.image.height) {
-                    var orig = {
-                        newPixel: Math.floor((ny * _this.image.width + nx) * 4)
-                    };
-                    var test = [ orig.newPixel ];
-                } else {
-                    var test = [ 0 ];
-                }
-                for (var k = 0; k < test.length; k++) {
-                    if (results[k] === undefined) {
-                        addResult();
-                    }
-                    var value = test[k];
-                    results[k].data[currPixel] = pixelData[value];
-                    results[k].data[currPixel + 1] = pixelData[value + 1];
-                    results[k].data[currPixel + 2] = pixelData[value + 2];
-                    results[k].data[currPixel + 3] = pixelData[value + 3];
-                }
-            }
-            return results;
-        },
-        transladar: function(top, left, bottom, right) {
-            var _this = this;
-            var width = _this.image.width + left + right;
-            var height = _this.image.height + top + bottom;
-            var matrix = [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ];
-            if (left > 0) {
-                matrix[6] = -left;
-                matrix[0];
-            }
-            if (top > 0) {
-                matrix[7] = -top;
-                matrix[0];
-            }
-            var results = _this.transform(width, height, matrix);
-            _this.image = results[0];
-            return results;
-        },
-        resize: function(x, y) {
-            var _this = this;
-            if (x >= 4 || x <= 0) {
-                alert("Intervalo aceito para X [0, 4] e != 0");
-                x = 1;
-            }
-            if (y >= 4 || y <= 0) {
-                alert("Intervalo aceito para Y [0, 4] e != 0");
-                y = 1;
-            }
-            var width = this.image.width * x;
-            var height = this.image.height * y;
-            var matrix = [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ];
-            matrix[0] = 1 / x;
-            matrix[4] = 1 / y;
-            var results = this.transform(width, height, matrix);
-            _this.image = results[0];
-            return results;
-        },
-        rotate: function(ang) {
-            var _this = this;
-            var width = this.image.width;
-            var height = this.image.height;
-            var cos = Math.cos(ang * Math.PI / 180);
-            var sin = Math.sin(ang * Math.PI / 180);
-            var xt = -sin * width / 2 - cos * height / 2 + height / 2;
-            var yt = -cos * width / 2 + sin * height / 2 + width / 2;
-            var matrix = [ cos, -sin, 0, sin, cos, 0, xt, yt, 1 ];
-            var results = this.transform(width, height, matrix);
-            return results;
-        },
-        mirror: function(x, y) {
-            var _this = this;
-            var width = _this.image.width;
-            var height = _this.image.height;
-            var matrix = [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ];
-            if (x > 0) {
-                matrix[0] = -x;
-                matrix[6] = _this.image.width;
-            }
-            if (y > 0) {
-                matrix[4] = -y;
-                matrix[7] = _this.image.height;
-            }
-            var results = _this.transform(width, height, matrix);
-            _this.image = results[0];
-            return results;
-        },
-        aliasing: function() {
-            var _this = this;
-            var pixelData = _this.getImageData().data;
-            var newImgData = this.blankMatrix(_this.image.width, _this.image.height);
-            var newPixelData = newImgData.data;
-            return newImgData;
-        },
-        ZhangSuen: function() {}
+        }
     };
     return PDI;
 }(jQuery);
