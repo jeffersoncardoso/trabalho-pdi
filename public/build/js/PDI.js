@@ -92,10 +92,6 @@ var PDI = (function($){
 		getPixelData: function(x, y, imgData){
 			var _this = this;
 
-			if(imgData === undefined){
-				imgData = _this.getImageData();
-			}
-
 			var width = imgData.width;
 			var height = imgData.height;
 
@@ -422,7 +418,24 @@ var PDI = (function($){
 				}
 			}
 
+			var width = imgData.width;
+
 			// aplicar o algoritmo em cima do imgData
+			for (var i = 0; i <= imgData.data.length; i += 4){
+				var y = Math.floor(i/4/width);
+				var x = Math.abs(i - y * width * 4)/4;
+
+				var pixelAtual = _this.getPixelData(x, y, imgData);
+				pixelAtual[0] // R
+				pixelAtual[1] // G
+				pixelAtual[2] // B
+				pixelAtual[3] // A
+
+				imgData.data[i]		= 255; // R
+				imgData.data[i + 1]	= 255; // G
+				imgData.data[i + 2]	= 255; // B
+				imgData.data[i + 3]	= 255; // A
+			}
 
 			
 

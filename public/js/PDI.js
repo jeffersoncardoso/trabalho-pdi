@@ -77,9 +77,6 @@ var PDI = function($) {
         },
         getPixelData: function(x, y, imgData) {
             var _this = this;
-            if (imgData === undefined) {
-                imgData = _this.getImageData();
-            }
             var width = imgData.width;
             var height = imgData.height;
             var lenStart = y * width * 4 + x * 4;
@@ -314,6 +311,20 @@ var PDI = function($) {
                     var binary = imgData.data[i + j] > 150 ? 255 : 0;
                     imgData.data[i + j] = binary;
                 }
+            }
+            var width = imgData.width;
+            for (var i = 0; i <= imgData.data.length; i += 4) {
+                var y = Math.floor(i / 4 / width);
+                var x = Math.abs(i - y * width * 4) / 4;
+                var pixelAtual = _this.getPixelData(x, y, imgData);
+                pixelAtual[0];
+                pixelAtual[1];
+                pixelAtual[2];
+                pixelAtual[3];
+                imgData.data[i] = 255;
+                imgData.data[i + 1] = 255;
+                imgData.data[i + 2] = 255;
+                imgData.data[i + 3] = 255;
             }
             return [ imgData ];
         }
