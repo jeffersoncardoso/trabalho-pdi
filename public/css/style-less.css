@@ -229,7 +229,6 @@
 }
 .content-right .content-wrapper .results,
 .content-right .content-wrapper .content-image {
-  width: 50%;
   height: auto;
   padding: 25px;
   float: left;

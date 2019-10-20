@@ -312,7 +312,9 @@ var PDI = function($) {
                     imgData.data[i + j] = binary;
                 }
             }
-            var width = imgData.width;
+            _this.image = imgData;
+            var results = [];
+            results.push(_this.getImageData());
             var nbrs = [ [ 0, -1 ], [ 1, -1 ], [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ -1, 1 ], [ -1, 0 ], [ -1, -1 ], [ 0, -1 ] ];
             var nbrGroups = [ [ [ 0, 2, 4 ], [ 2, 4, 6 ] ], [ [ 0, 2, 6 ], [ 0, 4, 6 ] ] ];
             function contaVizinhos(x, y, imgData) {
@@ -361,6 +363,7 @@ var PDI = function($) {
                 }
                 return count > 1;
             }
+            var width = imgData.width;
             var listToChange = [];
             var firstStep = false;
             do {
@@ -385,7 +388,8 @@ var PDI = function($) {
                 }
                 listToChange = [];
             } while (firstStep || hasChanged);
-            return [ imgData ];
+            results.push(imgData);
+            return results;
         }
     };
     return PDI;

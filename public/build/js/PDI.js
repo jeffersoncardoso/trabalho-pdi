@@ -417,8 +417,10 @@ var PDI = (function($){
 					imgData.data[i + j] = binary;
 				}
 			}
+			_this.image = imgData;
 
-			var width = imgData.width;
+			var results = [];
+			results.push(_this.getImageData());
 
 			//             P2		P3		P4		P5		P6		P7		  P8	   P9        P2
 			var nbrs = [[0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1]];
@@ -501,6 +503,7 @@ var PDI = (function($){
 				return count > 1;
 			}
 
+			var width = imgData.width;
 			var listToChange = [];
 			var firstStep = false;
 			do{
@@ -541,7 +544,8 @@ var PDI = (function($){
 				listToChange = [];
 			}while ((firstStep || hasChanged));
 
-			return [imgData];
+			results.push(imgData);
+			return results;
 		}
 	}
 	return PDI;
