@@ -1,6 +1,6 @@
 # Application
 
-## Recursos necessarios
+## Recursos necessarios 
 
 - Node
 - NPM
