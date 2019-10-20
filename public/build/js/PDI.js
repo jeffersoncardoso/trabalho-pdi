@@ -413,12 +413,98 @@ var PDI = (function($){
 			var imgData = _this.filterGray()[0];
 			for (var y = 0, x = 0, i = 0; i < imgData.data.length; i += 4){
 				for (let j = 0; j < 3; j++) {
-					var binary = (imgData.data[i + j] > 150) ? 255 : 0;
+					var binary = (imgData.data[i + j] > 135) ? 255 : 0;
 					imgData.data[i + j] = binary;
 				}
 			}
 
 			var width = imgData.width;
+			//Primeira condicao passo 1 e 2
+			function isBlackAndHasEightNeighbors(x,y,pxlData){
+				if (pxlData[0] === 0 && pxlData[1] === 0 && pxlData[2] === 0 ){
+					var first = _this.getPixelData(x,y-1,imgData) == undefined ? false : true;
+					var second = _this.getPixelData(x+1,y-1,imgData) == undefined ? false : true;
+					var third = _this.getPixelData(x+1,y,imgData) == undefined ? false : true;
+					var fourth = _this.getPixelData(x+1,y+1,imgData) == undefined ? false : true;
+					var fifth = _this.getPixelData(x,y+1,imgData) == undefined ? false : true;
+					var sxith = _this.getPixelData(x-1,y+1,imgData) == undefined ? false : true;
+					var seventh = _this.getPixelData(x-1,y,imgData) == undefined ? false : true;
+					var eighth = _this.getPixelData(x-1,y-1,imgData) == undefined ? false : true;
+
+					return first && second && third && fourth && fifth && sxith && seventh && eighth ? true : false;
+				}else{
+					return false;
+				}
+			}
+			//sgunda condicao passo 1 e 2
+			function hasBetweenTwoAndSixBlackNeighbors(x,y){
+				//Convete pixeis pretos para 1 e brancos para zero, para facilitar a verificação de vizinhos
+				var first = _this.getPixelData(x,y-1,imgData)[0] === 0 ? 1 : 0;
+				var second = _this.getPixelData(x+1,y-1,imgData)[0]  === 0 ? 1 : 0;
+				var third = _this.getPixelData(x+1,y,imgData)[0] === 0 ? 1 : 0;
+				var fourth = _this.getPixelData(x+1,y+1,imgData)[0] === 0 ? 1 : 0;
+				var fifth = _this.getPixelData(x,y+1,imgData)[0] === 0 ? 1 : 0;
+				var sxith = _this.getPixelData(x-1,y+1,imgData)[0] === 0 ? 1 : 0;
+				var seventh = _this.getPixelData(x-1,y,imgData)[0] === 0 ? 1 : 0;
+				var eighth = _this.getPixelData(x-1,y-1,imgData)[0] === 0 ? 1 : 0;
+
+				var sum = first + second + third + fourth + fifth + sxith + seventh + eighth;
+				return sum >= 2 && sum <=6
+			}
+			//terceira condicao passo 1 e 2
+			function hasOneWhiteToBlackTransition(x,y){
+				//Convete pixeis pretos para 1 e brancos para zero, e transofrma estes valore um array
+				var values = [_this.getPixelData(x,y-1,imgData)[0] === 0 ? 1 : 0,
+				_this.getPixelData(x+1,y-1,imgData)[0]  === 0 ? 1 : 0,
+				_this.getPixelData(x+1,y,imgData)[0] === 0 ? 1 : 0,
+				_this.getPixelData(x+1,y+1,imgData)[0] === 0 ? 1 : 0,
+				_this.getPixelData(x,y+1,imgData)[0] === 0 ? 1 : 0,
+				_this.getPixelData(x-1,y+1,imgData)[0] === 0 ? 1 : 0,
+				_this.getPixelData(x-1,y,imgData)[0] === 0 ? 1 : 0,
+				_this.getPixelData(x-1,y-1,imgData)[0] === 0 ? 1 : 0];
+
+				for(var i = 0; i < values.length ; i++){
+					if(i === 7){
+						return (values[i] === 0 && values[0] === 1) ? true : false;
+					}else{
+						if(values[i] === 0 && value[i+1] === 1){
+							return true;
+						}
+					}
+				}
+			}
+			//quarta condicao passo 1
+			function atLeastOneOf_P2_P4_P6_sWhite(x,y){
+				var p2 = _this.getPixelData(x,y-1,imgData)[0]  === 0 ? true : false;
+				var p4 = _this.getPixelData(x+1,y,imgData)[0] === 0 ? true : false;
+				var p6 = _this.getPixelData(x,y+1,imgData)[0] === 0 ? true : false;
+
+				return p2 && p4 && p6 ? false : true;
+			}
+			//quinta condicao passo 1
+			function atLeastOneOf_P4_P6_P8_IsWhite(x,y){
+				var p4 = _this.getPixelData(x+1,y,imgData)[0]  === 0 ? true : false;
+				var p6 = _this.getPixelData(x,y+1,imgData)[0] === 0 ? true : false;
+				var p8 = _this.getPixelData(x-1,y,imgData)[0] === 0 ? true : false;
+
+				return p4 && p6 && p8 ? false : true;
+			}
+			//quarta condicao passo 2
+			function atLeastOneOf_P2_P4_P8_IsWhite(x,y){
+				var p2 = _this.getPixelData(x,y-1,imgData)[0]  === 0 ? true : false;
+				var p4 = _this.getPixelData(x+1,y,imgData)[0] === 0 ? true : false;
+				var p8 = _this.getPixelData(x-1,y,imgData)[0] === 0 ? true : false;
+
+				return p2 && p4 && p8 ? false : true;
+			}
+			//quinta condicao passo 2
+			function atLeastOneOf_P2_P6_P8_IsWhite(x,y){
+				var p2 = _this.getPixelData(x,y-1,imgData)[0]  === 0 ? true : false;
+				var p6 = _this.getPixelData(x,y+1,imgData)[0] === 0 ? true : false;
+				var p8 = _this.getPixelData(x-1,y,imgData)[0] === 0 ? true : false;
+
+				return p2 && p6 && p8 ? false : true;
+			}
 
 			// aplicar o algoritmo em cima do imgData
 			for (var i = 0; i <= imgData.data.length; i += 4){
@@ -435,6 +521,7 @@ var PDI = (function($){
 				imgData.data[i + 1]	= 255; // G
 				imgData.data[i + 2]	= 255; // B
 				imgData.data[i + 3]	= 255; // A
+
 			}
 
 			
