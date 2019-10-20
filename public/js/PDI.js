@@ -1,4 +1,4 @@
-/*! Application - v0.0.0 - 2019-10-16 */
+/*! Application - v0.0.0 - 2019-10-20 */
 var PDI = function($) {
     var GRAY_SCALE_TYPES = [ "media", "grayscale", "desaturate", "hsv" ];
     function PDI() {
@@ -308,24 +308,83 @@ var PDI = function($) {
             var imgData = _this.filterGray()[0];
             for (var y = 0, x = 0, i = 0; i < imgData.data.length; i += 4) {
                 for (let j = 0; j < 3; j++) {
-                    var binary = imgData.data[i + j] > 150 ? 255 : 0;
+                    var binary = imgData.data[i + j] > 135 ? 255 : 0;
                     imgData.data[i + j] = binary;
                 }
             }
             var width = imgData.width;
-            for (var i = 0; i <= imgData.data.length; i += 4) {
-                var y = Math.floor(i / 4 / width);
-                var x = Math.abs(i - y * width * 4) / 4;
-                var pixelAtual = _this.getPixelData(x, y, imgData);
-                pixelAtual[0];
-                pixelAtual[1];
-                pixelAtual[2];
-                pixelAtual[3];
-                imgData.data[i] = 255;
-                imgData.data[i + 1] = 255;
-                imgData.data[i + 2] = 255;
-                imgData.data[i + 3] = 255;
+            var nbrs = [ [ 0, -1 ], [ 1, -1 ], [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ -1, 1 ], [ -1, 0 ], [ -1, -1 ], [ 0, -1 ] ];
+            var nbrGroups = [ [ [ 0, 2, 4 ], [ 2, 4, 6 ] ], [ [ 0, 2, 6 ], [ 0, 4, 6 ] ] ];
+            function contaVizinhos(x, y, imgData) {
+                var count = 0;
+                for (var i = 0; i < nbrs.length - 1; i++) {
+                    var nx = x + nbrs[i][1];
+                    var ny = y + nbrs[i][0];
+                    var pixel = _this.getPixelData(nx, ny, imgData);
+                    if (pixel[0] !== 255) {
+                        count++;
+                    }
+                }
+                return count;
             }
+            function countTransicoes(x, y, imgData) {
+                var count = 0;
+                for (var i = 0; i < nbrs.length - 1; i++) {
+                    var Pnx = x + nbrs[i][1];
+                    var Pny = y + nbrs[i][0];
+                    var PnPixel = _this.getPixelData(Pnx, Pny, imgData);
+                    if (PnPixel[0] === 255) {
+                        var Pn1x = x + nbrs[i + 1][1];
+                        var Pn1y = y + nbrs[i + 1][0];
+                        var Pn1Pixel = _this.getPixelData(Pn1x, Pn1y, imgData);
+                        if (Pn1Pixel[0] !== 255) {
+                            count++;
+                        }
+                    }
+                }
+                return count;
+            }
+            function atLeastOneIsWhite(r, c, imgData, step) {
+                var count = 0;
+                var group = nbrGroups[step];
+                for (var i = 0; i < 2; i++) {
+                    for (var j = 0; j < group[i].length; j++) {
+                        var nbr = nbrs[group[i][j]];
+                        var nx = r + nbr[1];
+                        var ny = c + nbr[0];
+                        var pixel = _this.getPixelData(nx, ny, imgData);
+                        if (pixel[0] === 255) {
+                            count++;
+                            break;
+                        }
+                    }
+                }
+                return count > 1;
+            }
+            var listToChange = [];
+            var firstStep = false;
+            do {
+                hasChanged = false;
+                firstStep = !firstStep;
+                for (var i = 0; i <= imgData.data.length; i += 4) {
+                    var y = Math.floor(i / 4 / width);
+                    var x = Math.abs(i - y * width * 4) / 4;
+                    if (imgData.data[i] !== 0) continue;
+                    var nn = contaVizinhos(x, y, imgData);
+                    if (nn < 2 || nn > 6) continue;
+                    if (countTransicoes(x, y, imgData) !== 1) continue;
+                    if (!atLeastOneIsWhite(x, y, imgData, firstStep ? 0 : 1)) continue;
+                    listToChange.push(i);
+                    hasChanged = true;
+                }
+                for (var i = 0; i < listToChange.length; i++) {
+                    var pixelLen = listToChange[i];
+                    imgData.data[pixelLen] = 255;
+                    imgData.data[pixelLen + 1] = 255;
+                    imgData.data[pixelLen + 2] = 255;
+                }
+                listToChange = [];
+            } while (firstStep || hasChanged);
             return [ imgData ];
         }
     };

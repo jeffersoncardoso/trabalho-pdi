@@ -419,112 +419,127 @@ var PDI = (function($){
 			}
 
 			var width = imgData.width;
-			//Primeira condicao passo 1 e 2
-			function isBlackAndHasEightNeighbors(x,y,pxlData){
-				if (pxlData[0] === 0 && pxlData[1] === 0 && pxlData[2] === 0 ){
-					var first = _this.getPixelData(x,y-1,imgData) == undefined ? false : true;
-					var second = _this.getPixelData(x+1,y-1,imgData) == undefined ? false : true;
-					var third = _this.getPixelData(x+1,y,imgData) == undefined ? false : true;
-					var fourth = _this.getPixelData(x+1,y+1,imgData) == undefined ? false : true;
-					var fifth = _this.getPixelData(x,y+1,imgData) == undefined ? false : true;
-					var sxith = _this.getPixelData(x-1,y+1,imgData) == undefined ? false : true;
-					var seventh = _this.getPixelData(x-1,y,imgData) == undefined ? false : true;
-					var eighth = _this.getPixelData(x-1,y-1,imgData) == undefined ? false : true;
 
-					return first && second && third && fourth && fifth && sxith && seventh && eighth ? true : false;
-				}else{
-					return false;
+			//             P2		P3		P4		P5		P6		P7		  P8	   P9        P2
+			var nbrs = [[0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1]];
+			//			    0       1       2       3        4       5         6        7         8 
+
+			var nbrGroups = [
+				// STAGE
+				[
+					// P2, P4, P6
+					[0, 2, 4],
+					// P4, P6, P8
+					[2, 4, 6]
+				],
+				[
+					// P2, P4, P8
+					[0, 2, 6],
+					// P2, P6, P8
+					[0, 4, 6]
+				]
+			];
+			function contaVizinhos(x, y, imgData){
+				var count = 0;
+				for (var i = 0; i < nbrs.length - 1; i++){
+					var nx = x + nbrs[i][1];
+					var ny = y + nbrs[i][0];
+					
+					var pixel = _this.getPixelData(nx, ny, imgData);
+					if(pixel[0] !== 255){
+						count++;
+					}
 				}
+				return count;
 			}
-			//sgunda condicao passo 1 e 2
-			function hasBetweenTwoAndSixBlackNeighbors(x,y){
-				//Convete pixeis pretos para 1 e brancos para zero, para facilitar a verificação de vizinhos
-				var first = _this.getPixelData(x,y-1,imgData)[0] === 0 ? 1 : 0;
-				var second = _this.getPixelData(x+1,y-1,imgData)[0]  === 0 ? 1 : 0;
-				var third = _this.getPixelData(x+1,y,imgData)[0] === 0 ? 1 : 0;
-				var fourth = _this.getPixelData(x+1,y+1,imgData)[0] === 0 ? 1 : 0;
-				var fifth = _this.getPixelData(x,y+1,imgData)[0] === 0 ? 1 : 0;
-				var sxith = _this.getPixelData(x-1,y+1,imgData)[0] === 0 ? 1 : 0;
-				var seventh = _this.getPixelData(x-1,y,imgData)[0] === 0 ? 1 : 0;
-				var eighth = _this.getPixelData(x-1,y-1,imgData)[0] === 0 ? 1 : 0;
 
-				var sum = first + second + third + fourth + fifth + sxith + seventh + eighth;
-				return sum >= 2 && sum <=6
-			}
-			//terceira condicao passo 1 e 2
-			function hasOneWhiteToBlackTransition(x,y){
-				//Convete pixeis pretos para 1 e brancos para zero, e transofrma estes valore um array
-				var values = [_this.getPixelData(x,y-1,imgData)[0] === 0 ? 1 : 0,
-				_this.getPixelData(x+1,y-1,imgData)[0]  === 0 ? 1 : 0,
-				_this.getPixelData(x+1,y,imgData)[0] === 0 ? 1 : 0,
-				_this.getPixelData(x+1,y+1,imgData)[0] === 0 ? 1 : 0,
-				_this.getPixelData(x,y+1,imgData)[0] === 0 ? 1 : 0,
-				_this.getPixelData(x-1,y+1,imgData)[0] === 0 ? 1 : 0,
-				_this.getPixelData(x-1,y,imgData)[0] === 0 ? 1 : 0,
-				_this.getPixelData(x-1,y-1,imgData)[0] === 0 ? 1 : 0];
+			// TRANSICOES DE BRANCO PARA PRETO NA ESFERA
+			function countTransicoes(x, y, imgData){
+				var count = 0;
+				for (var i = 0; i < nbrs.length - 1; i++){
+					// Pn
+					var Pnx = x + nbrs[i][1];
+					var Pny = y + nbrs[i][0];
+					var PnPixel = _this.getPixelData(Pnx, Pny, imgData);
 
-				for(var i = 0; i < values.length ; i++){
-					if(i === 7){
-						return (values[i] === 0 && values[0] === 1) ? true : false;
-					}else{
-						if(values[i] === 0 && value[i+1] === 1){
-							return true;
+					if(PnPixel[0] === 255){
+						// Pn + 1
+						var Pn1x = x + nbrs[i + 1][1];
+						var Pn1y = y + nbrs[i + 1][0];
+						var Pn1Pixel = _this.getPixelData(Pn1x, Pn1y, imgData);
+
+						if(Pn1Pixel[0] !== 255){
+							count++;
 						}
 					}
 				}
-			}
-			//quarta condicao passo 1
-			function atLeastOneOf_P2_P4_P6_sWhite(x,y){
-				var p2 = _this.getPixelData(x,y-1,imgData)[0]  === 0 ? true : false;
-				var p4 = _this.getPixelData(x+1,y,imgData)[0] === 0 ? true : false;
-				var p6 = _this.getPixelData(x,y+1,imgData)[0] === 0 ? true : false;
-
-				return p2 && p4 && p6 ? false : true;
-			}
-			//quinta condicao passo 1
-			function atLeastOneOf_P4_P6_P8_IsWhite(x,y){
-				var p4 = _this.getPixelData(x+1,y,imgData)[0]  === 0 ? true : false;
-				var p6 = _this.getPixelData(x,y+1,imgData)[0] === 0 ? true : false;
-				var p8 = _this.getPixelData(x-1,y,imgData)[0] === 0 ? true : false;
-
-				return p4 && p6 && p8 ? false : true;
-			}
-			//quarta condicao passo 2
-			function atLeastOneOf_P2_P4_P8_IsWhite(x,y){
-				var p2 = _this.getPixelData(x,y-1,imgData)[0]  === 0 ? true : false;
-				var p4 = _this.getPixelData(x+1,y,imgData)[0] === 0 ? true : false;
-				var p8 = _this.getPixelData(x-1,y,imgData)[0] === 0 ? true : false;
-
-				return p2 && p4 && p8 ? false : true;
-			}
-			//quinta condicao passo 2
-			function atLeastOneOf_P2_P6_P8_IsWhite(x,y){
-				var p2 = _this.getPixelData(x,y-1,imgData)[0]  === 0 ? true : false;
-				var p6 = _this.getPixelData(x,y+1,imgData)[0] === 0 ? true : false;
-				var p8 = _this.getPixelData(x-1,y,imgData)[0] === 0 ? true : false;
-
-				return p2 && p6 && p8 ? false : true;
+				return count;
 			}
 
-			// aplicar o algoritmo em cima do imgData
-			for (var i = 0; i <= imgData.data.length; i += 4){
-				var y = Math.floor(i/4/width);
-				var x = Math.abs(i - y * width * 4)/4;
+			// VERIFICA A PRESENSA DE BRANCO NOS GRUPOS DA PROXIMIDADE
+			function atLeastOneIsWhite(r, c, imgData, step){
+				var count = 0;
+				var group = nbrGroups[step];
 
-				var pixelAtual = _this.getPixelData(x, y, imgData);
-				pixelAtual[0] // R
-				pixelAtual[1] // G
-				pixelAtual[2] // B
-				pixelAtual[3] // A
+				// VERIFICA OS 2 GRUPOS
+				for (var i = 0; i < 2; i++){
+					// SE AO MENOS 1 DO GRUPO É BRANCO, INCREMENTA O CONTADOR
+					for (var j = 0; j < group[i].length; j++) {
+						var nbr = nbrs[group[i][j]];
 
-				imgData.data[i]		= 255; // R
-				imgData.data[i + 1]	= 255; // G
-				imgData.data[i + 2]	= 255; // B
-				imgData.data[i + 3]	= 255; // A
+						var nx = r + nbr[1];
+						var ny = c + nbr[0];
+						var pixel = _this.getPixelData(nx, ny, imgData);
 
+						if (pixel[0] === 255){
+							count++;
+							break;
+						}
+					}
+				}
+				// TEM BRANCO
+				return count > 1;
 			}
 
-			
+			var listToChange = [];
+			var firstStep = false;
+			do{
+				hasChanged = false;
+				firstStep = !firstStep;
+
+				for (var i = 0; i <= imgData.data.length; i += 4){
+					var y = Math.floor(i/4/width);
+					var x = Math.abs(i - y * width * 4)/4;
+
+					// CONTINUA SE O PIXEL NÃO É PRETO
+					if(imgData.data[i] !== 0) continue;
+
+					// CONTA QUANTOS VIZINHOS PRETOS TEM
+					var nn = contaVizinhos(x, y, imgData);
+					if(nn < 2 || nn > 6) continue;
+
+					// CONTINUA SE NÃO ACHOU NEM UMA ALTERNANCIA
+					if(countTransicoes(x, y, imgData) !== 1) continue;
+
+					// CONTINUA SE Ñ TEM BRANCO NOS GRUPOS PROXIMOS
+					if(!atLeastOneIsWhite(x, y, imgData, firstStep ? 0 : 1)) continue;
+
+					// ADICIONA AOS PIXELS PARA PINTAR DE BRANCO
+					listToChange.push(i);
+					hasChanged = true;
+				}
+
+				// ALTERA OS PIXELS APENAS APOS TODA CONFERENCIA
+				for (var i = 0; i < listToChange.length; i++) {
+					var pixelLen = listToChange[i];
+
+					imgData.data[pixelLen]		= 255; // R
+					imgData.data[pixelLen + 1]	= 255; // G
+					imgData.data[pixelLen + 2]	= 255; // B
+					// imgData.data[pixelLen + 3]	= 255; // A
+				}
+				listToChange = [];
+			}while ((firstStep || hasChanged));
 
 			return [imgData];
 		}
