@@ -35,8 +35,8 @@ var PDI = function($) {
             _this.original.src = URL.createObjectURL(image);
             _this.image.src = URL.createObjectURL(image);
             if (typeof callback == "function") {
-                _this.image.onload = function() {
-                    callback(_this.image);
+                _this.original.onload = function() {
+                    callback(_this.original);
                     _this.resetImage();
                     _this.convertToGrid();
                 };
